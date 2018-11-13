@@ -12,29 +12,29 @@ class Solid {
         Edge e1 = new Edge(p1: ep1, p2: ep2)
         Edge e2 = new Edge(p1: p1, p2: p2)
 
-        println dist(e1, p1)
-        println dist(e1, e2)
+//        println dist(e1, p1)
+//        println dist(e1, e2)
 
         List<Solid> solids1 = solidsFromFile('src/main/resources/simpleSolid.txt')
 
-        println dist(solids1[0], solids1[1])
+//        println dist(solids1[0], solids1[1])
 
         List<Solid> solids2 = solidsFromFile('src/main/resources/solidsFromClass3.txt')
 
-        println dist(solids2[0], solids2[1])
+        println 'dist between solids: ' + dist(solids2[0], solids2[1])
 
         Face face1 = solids1[0].faces[0]
         Face face2 = solids1[1].faces[0]
-        println dist(face1, face2)
-        println face1.edges().collect { it.toString() }
-        println face2.edges().collect { it.toString() }
+        println 'dist between faces: ' + dist(face1, face2)
+//        println face1.edges().collect { it.toString() }
+//        println face2.edges().collect { it.toString() }
 
         Edge edge1 = face1.edges()[0]
         Edge edge2 = face2.edges()[0]
 
-        println edge1
-        println edge2
-        println dist(edge1, edge2)
+//        println edge1
+//        println edge2
+//        println dist(edge1, edge2)
     }
 
     private static List<Solid> solidsFromFile(String filePath) {
@@ -82,18 +82,29 @@ class Solid {
         List<Edge> edges(){
             [new Edge(p1: p1, p2: p2), new Edge(p1: p2, p2: p3), new Edge(p1: p3, p2: p1)]
         }
+
+        List<Edge> edgesAndMiddle() {
+            [new Edge(p1: p1, p2: p2), new Edge(p1: p2, p2: p3), new Edge(p1: p3, p2: p1),
+             new Edge(p1: p1, p2: new Edge(p1: p2, p2: p3).middle()),
+             new Edge(p1: p2, p2: new Edge(p1: p3, p2: p1).middle()),
+             new Edge(p1: p3, p2: new Edge(p1: p1, p2: p2).middle())]
+        }
     }
 
     private static class Edge {
         Point p1, p2
 
 
+        Point middle() {
+            p1.add(p2.add(p1.multiply(-1)).multiply(0.5))
+        }
+
         @Override
         public String toString() {
             return "{" +
                     "" + p1 +
                     ", " + p2 +
-                    '}';
+                    '}'
         }
     }
 
@@ -133,7 +144,7 @@ class Solid {
 
 
         @Override
-        public String toString() {
+        String toString() {
             return "($x, $y, $z)"
         }
     }
@@ -242,15 +253,15 @@ class Solid {
     }
 //
     static double dist(Edge e, Face f) {
-        f.edges().collect { dist(it, e) }.min()
+        f.edgesAndMiddle().collect { dist(it, e) }.min()
     }
 //
     static double dist(Face f, Point p) {
-        f.edges().collect { dist(it, p) }.min()
+        f.edgesAndMiddle().collect { dist(it, p) }.min()
     }
 //
     static double dist(Face f1, Face f2) {
-        f1.edges().collect { e1 -> f2.edges().collect { e2 -> dist(e1, e2)} }.flatten().min()
+        f1.edgesAndMiddle().collect { e1 -> f2.edgesAndMiddle().collect { e2 -> dist(e1, e2)} }.flatten().min()
     }
 //
     static double dist(Solid s1, Solid s2) {
