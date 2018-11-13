@@ -89,6 +89,10 @@ class Solid {
              new Edge(p1: p2, p2: new Edge(p1: p3, p2: p1).middle()),
              new Edge(p1: p3, p2: new Edge(p1: p1, p2: p2).middle())]
         }
+
+        List<Point> pointsAndMiddles() {
+            [p1, p2, p3] + edges().collect { it.middle() }
+        }
     }
 
     private static class Edge {
@@ -257,11 +261,31 @@ class Solid {
     }
 //
     static double dist(Face f, Point p) {
-        f.edgesAndMiddle().collect { dist(it, p) }.min()
+        Point v1 = f.p1.difference(f.p2)
+        Point v2 = f.p2.difference(f.p3)
+
+        double x = v1.y*v2.z - v1.z*v2.y
+        double y = v1.z*v2.x - v1.x*v2.z
+        double z = v1.x*v2.y - v1.y*v2.x
+
+        double d = -f.p1.x * x - f.p1.y * y - f.p1.z*z
+
+        double distToPlane = Math.abs(x * p.x + y * p.y + p.z * z + d) / Math.sqrt(x**2 + y**2 + z**2)
+        println distToPlane
+        double distBetweenEdges = f.edgesAndMiddle().collect { dist(it, p) }.min()
+        println distBetweenEdges
+
+        Math.min(distToPlane, distBetweenEdges)
+//        f.edgesAndMiddle().collect { dist(it, p) }.min()
     }
 //
     static double dist(Face f1, Face f2) {
-        f1.edgesAndMiddle().collect { e1 -> f2.edgesAndMiddle().collect { e2 -> dist(e1, e2)} }.flatten().min()
+        double dist1 = f1.pointsAndMiddles().collect { dist(f2, it) }.min()
+        double dist2 = f2.pointsAndMiddles().collect { dist(f1, it) }.min()
+
+        Math.min(dist1, dist2)
+
+//        f1.edgesAndMiddle().collect { e1 -> f2.edgesAndMiddle().collect { e2 -> dist(e1, e2)} }.flatten().min()
     }
 //
     static double dist(Solid s1, Solid s2) {
