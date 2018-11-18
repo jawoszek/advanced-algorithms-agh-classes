@@ -3,19 +3,34 @@ import java.util.concurrent.FutureTask
 
 class MatricesMultiplication implements Callable<Matrix> {
 
+    private static final String DELIMITER = '-'*20
     List<Matrix> matrices
 
     static void main(String[] args) {
+        mainForFile('src/main/resources/matricesFromClass4.txt')
+    }
+
+    private static void mainForFile(String filePath) {
+        println "$DELIMITER $filePath $DELIMITER"
+
         long millisBeforeParsing = System.currentTimeMillis()
-        List<Matrix> matrices = readFromFile('src/main/resources/matricesFromClass4.txt')
+        List<Matrix> matrices = readFromFile(filePath)
         long millisAfterParsing = System.currentTimeMillis()
-        println "time of parsing: ${millisAfterParsing-millisBeforeParsing} ms"
 
         long millisBeforeCalculation = System.currentTimeMillis()
         Matrix result = new MatricesMultiplication(matrices: matrices).call()
         long millisAfterCalculation = System.currentTimeMillis()
         println result
+
+        long millisBeforeCalculationSingleThread = System.currentTimeMillis()
+        Matrix resultSingleThread = multiplyMatrices(matrices)
+        long millisAfterCalculationSingleThread = System.currentTimeMillis()
+        println resultSingleThread
+
+        println "time of parsing: ${millisAfterParsing-millisBeforeParsing} ms"
         println "time of calculation: ${millisAfterCalculation-millisBeforeCalculation} ms"
+        println "time of calculation for single thread: ${millisAfterCalculationSingleThread-millisBeforeCalculationSingleThread} ms"
+        println "$DELIMITER $filePath $DELIMITER"
     }
 
     private static List<Matrix> readFromFile(String filePath) {
@@ -109,14 +124,6 @@ class MatricesMultiplication implements Callable<Matrix> {
             for (int i = 0; i < columnsSize; i++) {
                 columns[i] = new double[rowsSize]
             }
-        }
-
-        Double[] row(int index) {
-            rows[index]
-        }
-
-        Double[] column(int index) {
-            columns[index]
         }
 
         Matrix multiply(Matrix other) {
