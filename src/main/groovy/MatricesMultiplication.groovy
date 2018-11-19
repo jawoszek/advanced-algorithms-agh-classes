@@ -90,17 +90,21 @@ class MatricesMultiplication implements Callable<Matrix> {
             return multiplyMatrices(matrices)
         }
 
-        List<Matrix> toMultiply = matrices.subList(0, matrices.size().intdiv(2))
-        List<Matrix> toSend = matrices.subList(matrices.size().intdiv(2), matrices.size())
+        List<FutureTask<Matrix>> tasks = []
+        List<Matrix> toMultiply = matrices
+        List<Matrix> toSend
 
-        Callable<Matrix> callable = new MatricesMultiplication(matrices: toSend)
-        FutureTask<Matrix> futureTask = new FutureTask<>(callable)
-        new Thread(futureTask).start()
+        while (toMultiply.size() > 3) {
+            toSend = toMultiply.subList(toMultiply.size().intdiv(2), toMultiply.size())
+            toMultiply = toMultiply.subList(0, toMultiply.size().intdiv(2))
 
-        Matrix calculated = multiplyMatrices(toMultiply)
-        Matrix received = futureTask.get()
+            Callable<Matrix> callable = new MatricesMultiplication(matrices: toSend)
+            FutureTask<Matrix> futureTask = new FutureTask<>(callable)
+            new Thread(futureTask).start()
+            tasks.add(futureTask)
+        }
 
-        calculated * received
+        tasks.reverse().inject(multiplyMatrices(toMultiply)) { result, value -> result * value.get() }
     }
 
     private static Matrix multiplyMatrices(List<Matrix> matrices) {
